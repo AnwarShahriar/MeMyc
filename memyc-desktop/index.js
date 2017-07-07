@@ -1,6 +1,9 @@
 'use strict';
 const electron = require('electron');
 
+// Init the socket.io server
+require('./server/memyc.server');
+
 const app = electron.app;
 
 // adds debug features like hotkeys for triggering dev tools and reload
