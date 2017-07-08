@@ -2,7 +2,11 @@
 const electron = require('electron');
 
 // Init the socket.io server
-require('./server/memyc.server');
+require('./server/memyc.server')((result) => {
+	if (mainWindow) {
+		mainWindow.webContents.send('memyc-frame-ready', result);
+	}
+});
 
 const app = electron.app;
 

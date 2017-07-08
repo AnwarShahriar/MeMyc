@@ -1,14 +1,15 @@
 const processImage = (imageData) => {
-    let binary = '';
-    let bytes = new Uint8Array(data);
-    let len = bytes.byteLength;
-
-    for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
+    var uInt8Array = imageData;
+    var i = uInt8Array.length;
+    var binaryString = [i];
+    while (i--) {
+        binaryString[i] = String.fromCharCode(uInt8Array[i]);
     }
+    var data = binaryString.join('');
+    let src = 'data:image/jpeg;base64,' + new Buffer(data, 'binary').toString('base64')
 
     return {
-        imgSrc: 'data:image/jpeg;base64,' + new Buffer(binary).toString('base64')
+        imgSrc: src
     }
 }
 
