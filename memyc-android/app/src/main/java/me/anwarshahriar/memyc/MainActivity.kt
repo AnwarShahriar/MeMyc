@@ -7,14 +7,11 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.view.Display
-import android.view.Surface
+import android.support.v7.app.AppCompatActivity
 import android.widget.Button
-import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,7 +20,6 @@ class MainActivity : AppCompatActivity() {
   private val requestCaptureButton: Lazy<Button> = lazy { findViewById<Button>(R.id.capture_request_button) }
 
   private lateinit var mediaProjection: MediaProjection
-  private lateinit var surface: Surface
   private lateinit var handler: Handler
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +31,7 @@ class MainActivity : AppCompatActivity() {
 
   private fun init() {
     requestCaptureButton.value.setOnClickListener {
-      val captureIntent = prepareCaptureIntent();
+      val captureIntent = prepareCaptureIntent()
       startActivityForResult(captureIntent, REQUEST_MEDIA_PROJECTION)
     }
   }
@@ -69,7 +65,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun createProjectionHandler() {
-    val projectionThread = HandlerThread("Projection Thread");
+    val projectionThread = HandlerThread("Projection Thread")
     projectionThread.start()
     handler = Handler(projectionThread.looper)
   }
