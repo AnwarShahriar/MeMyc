@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() {
       mediaProjection = getProjectionManager().getMediaProjection(resultCode, data)
       mediaProjection?.registerCallback(Callback(), handler)
       virtualDisplay = createVirtualDisplay(mediaProjection!!)
+      virtualDisplay.surface
     }
   }
 
@@ -97,6 +98,7 @@ class MainActivity : AppCompatActivity() {
     var width: Int = 0
     var height: Int = 0
     var imageReader: ImageReader
+    var count = 0
 
     init {
       val display = windowManager.defaultDisplay
@@ -116,12 +118,16 @@ class MainActivity : AppCompatActivity() {
       this.height = height
 
       imageReader = ImageReader.newInstance(width, height,
-            PixelFormat.RGBA_8888, 0)
+            PixelFormat.RGBA_8888, 30)
       imageReader.setOnImageAvailableListener(this, handler)
     }
 
     override fun onImageAvailable(p0: ImageReader?) {
-      Log.d("MeMyc", "Got image")
+      count++
+
+      val image = imageReader.acquireLatestImage()
+      Log.d("MeMyc", "Got image: ${count}")
+      image?.close()
     }
   }
 }
