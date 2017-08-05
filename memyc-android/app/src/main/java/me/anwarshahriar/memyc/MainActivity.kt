@@ -14,6 +14,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.WindowManager
 import android.widget.Button
 
@@ -27,6 +28,8 @@ class MainActivity : AppCompatActivity() {
   private lateinit var handler: Handler
   private val callback = Callback()
   private lateinit var virtualDisplay: VirtualDisplay
+  private lateinit var projectionThread: HandlerThread
+  private lateinit var imageTransformer: ImageTransformer
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -61,6 +64,7 @@ class MainActivity : AppCompatActivity() {
 
   private class Callback: MediaProjection.Callback() {
     override fun onStop() {
+      Log.d("MeMyc", "Projection stopped");
       // todo: clean up the mess here
     }
   }
@@ -72,7 +76,7 @@ class MainActivity : AppCompatActivity() {
 
   private fun createVirtualDisplay(mediaProjection: MediaProjection): VirtualDisplay {
     val displayMetric = resources.displayMetrics
-    val imageTransformer = ImageTransformer(handler, windowManager)
+    imageTransformer = ImageTransformer(handler, windowManager)
     return mediaProjection.createVirtualDisplay("MeMyc",
         imageTransformer.width,
         imageTransformer.height,
@@ -84,7 +88,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun createProjectionHandler() {
-    val projectionThread = HandlerThread("Projection Thread")
+    projectionThread = HandlerThread("Projection Thread")
     projectionThread.start()
     handler = Handler(projectionThread.looper)
   }
@@ -112,12 +116,12 @@ class MainActivity : AppCompatActivity() {
       this.height = height
 
       imageReader = ImageReader.newInstance(width, height,
-            PixelFormat.RGBA_8888, 2)
+            PixelFormat.RGBA_8888, 0)
       imageReader.setOnImageAvailableListener(this, handler)
     }
 
     override fun onImageAvailable(p0: ImageReader?) {
-      // todo: implement it
+      Log.d("MeMyc", "Got image")
     }
   }
 }
