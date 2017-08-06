@@ -17,6 +17,13 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.WindowManager
 import android.widget.Button
+import android.graphics.Bitmap
+import android.media.Image
+import android.opengl.ETC1.getHeight
+import android.opengl.ETC1.getWidth
+import android.media.Image.Plane
+import java.io.ByteArrayOutputStream
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -99,6 +106,7 @@ class MainActivity : AppCompatActivity() {
     var height: Int = 0
     var imageReader: ImageReader
     var count = 0
+    var latestBitmap: Bitmap? = null
 
     init {
       val display = windowManager.defaultDisplay
@@ -118,16 +126,51 @@ class MainActivity : AppCompatActivity() {
       this.height = height
 
       imageReader = ImageReader.newInstance(width, height,
-            PixelFormat.RGBA_8888, 30)
+            PixelFormat.RGBA_8888, 10)
       imageReader.setOnImageAvailableListener(this, handler)
     }
 
     override fun onImageAvailable(p0: ImageReader?) {
       count++
 
-      val image = imageReader.acquireLatestImage()
-      Log.d("MeMyc", "Got image: ${count}")
-      image?.close()
+      val image: Image? = imageReader.acquireLatestImage()
+      if (image != null) {
+        val planes = image.planes
+        val buffer = planes[0].buffer
+        val pixelStride = planes[0].pixelStride
+        val rowStride = planes[0].rowStride
+        val rowPadding = rowStride - pixelStride * width
+        val bitmapWidth = width + rowPadding / pixelStride
+
+        if (latestBitmap == null ||
+            latestBitmap?.getWidth() !== bitmapWidth ||
+            latestBitmap?.getHeight() !== height) {
+          if (latestBitmap != null) {
+            latestBitmap?.recycle()
+          }
+
+          latestBitmap = Bitmap.createBitmap(bitmapWidth,
+              height, Bitmap.Config.ARGB_8888)
+        }
+
+        latestBitmap?.copyPixelsFromBuffer(buffer)
+
+        image?.close()
+
+        val baos = ByteArrayOutputStream()
+        val cropped = Bitmap.createBitmap(latestBitmap, 0, 0,
+            width, height)
+
+        cropped.compress(Bitmap.CompressFormat.JPEG, 60, baos)
+
+        val newJpeg = baos.toByteArray()
+
+        sendImage(newJpeg)
+      }
+    }
+
+    private fun sendImage(newJpeg: ByteArray?) {
+      Log.d("MeMyc", "Image Received: ${count}")
     }
   }
 }
