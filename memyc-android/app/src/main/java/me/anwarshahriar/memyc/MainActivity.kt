@@ -22,6 +22,12 @@ import android.media.Image
 import android.opengl.ETC1.getHeight
 import android.opengl.ETC1.getWidth
 import android.media.Image.Plane
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
+import okio.ByteString
 import java.io.ByteArrayOutputStream
 
 
@@ -38,6 +44,8 @@ class MainActivity : AppCompatActivity() {
   private lateinit var projectionThread: HandlerThread
   private lateinit var imageTransformer: ImageTransformer
 
+  private lateinit var client: OkHttpClient
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
@@ -50,6 +58,7 @@ class MainActivity : AppCompatActivity() {
       val captureIntent = prepareCaptureIntent()
       startActivityForResult(captureIntent, REQUEST_MEDIA_PROJECTION)
     }
+    client = OkHttpClient()
   }
 
   private fun prepareCaptureIntent(): Intent {
@@ -67,6 +76,7 @@ class MainActivity : AppCompatActivity() {
       mediaProjection?.registerCallback(Callback(), handler)
       virtualDisplay = createVirtualDisplay(mediaProjection!!)
       virtualDisplay.surface
+      start()
     }
   }
 
@@ -99,6 +109,29 @@ class MainActivity : AppCompatActivity() {
     projectionThread = HandlerThread("Projection Thread")
     projectionThread.start()
     handler = Handler(projectionThread.looper)
+  }
+
+  class EchoWebSocketListener: WebSocketListener() {
+    private val NORMAL_CLOSURE_STATUS = 1000
+
+    override fun onOpen(webSocket: WebSocket, response: Response?) {}
+
+    override fun onMessage(webSocket: WebSocket, text:String) {}
+
+    override fun onMessage(webSocket: WebSocket, bytes: ByteString) {}
+
+    override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+      webSocket.close(NORMAL_CLOSURE_STATUS, null)
+    }
+
+    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response) {}
+  }
+
+  private fun start() {
+    val request = Request.Builder().url("ws://localhost:3000").build();
+    val listener = EchoWebSocketListener();
+    val ws = client.newWebSocket(request, listener);
+    client.dispatcher().executorService().shutdown();
   }
 
   private class ImageTransformer(handler: Handler, windowManager: WindowManager): ImageReader.OnImageAvailableListener {
